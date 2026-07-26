@@ -20,6 +20,8 @@ jobs:
           fetch-depth: 0
           submodules: recursive
           # We check out the submodules exactly at the commit the suite specifies.
+          # A Personal Access Token (PAT) is required so the Action can push tags to the other submodule repositories.
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Tag Library Dependencies
         env:
