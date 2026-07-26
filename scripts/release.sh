@@ -8,15 +8,38 @@ fi
 
 NEW_VERSION=$1
 GO_VERSION="1.26.1"
-MODULES=("checkmate-core" "checkmate-plugin" "checkmate-badger-project-manager" "git-service-driver" "ldap-sync")
-ALL_DIRS=("checkmate-core" "checkmate-plugin" "checkmate-badger-project-manager" "git-service-driver" "ldap-sync" "checkmate")
+# Discover all submodules dynamically (extensible for future apps)
+mapfile -t ALL_DIRS < <(git config --file .gitmodules --get-regexp path | awk '{ print $2 }')
 
+# Library modules (submodules excluding the main app 'checkmate') to bump in go.mod
+MODULES=()
+for dir in "${ALL_DIRS[@]}"; do
+  # We assume anything not named 'checkmate' or ending in '-app' is a library.
+  # For now, we just exclude 'checkmate'. If you add 'checkmate-desktop', you can exclude it here.
+  if [[ "$dir" != "checkmate" && "$dir" != *"-app" ]]; then
+    MODULES+=("$dir")
+  fi
+done
 echo "🚀 Preparing release for $NEW_VERSION across all modules..."
 
 for dir in "${ALL_DIRS[@]}"; do
   echo "----------------------------------------"
   echo "📦 Processing $dir"
   pushd "$dir" > /dev/null
+
+  # 0. Safety Checks: Ensure on main and synced
+  BRANCH=$(git rev-parse --abbrev-ref HEAD)
+  if [ "$BRANCH" != "main" ]; then
+    echo "❌ Error: $dir is on branch $BRANCH. Must be on main."
+    exit 1
+  fi
+  
+  git fetch origin main >/dev/null 2>&1
+  BEHIND=$(git rev-list HEAD..origin/main --count)
+  if [ "$BEHIND" -gt 0 ]; then
+    echo "❌ Error: $dir is $BEHIND commits behind origin/main. Please pull first."
+    exit 1
+  fi
 
   # 1. Update Go version to the requested latest
   echo "   - Updating go.mod to go $GO_VERSION"
