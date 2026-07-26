@@ -1,0 +1,18 @@
+[submodule "checkmate-badger-project-manager"]
+	path = checkmate-badger-project-manager
+	url = https://github.com/adedayo/checkmate-badger-project-manager.git
+[submodule "checkmate"]
+	path = checkmate
+	url = https://github.com/adedayo/checkmate.git
+[submodule "checkmate-core"]
+	path = checkmate-core
+	url = https://github.com/adedayo/checkmate-core.git
+[submodule "checkmate-plugin"]
+	path = checkmate-plugin
+	url = https://github.com/adedayo/checkmate-plugin.git
+[submodule "git-service-driver"]
+	path = git-service-driver
+	url = https://github.com/adedayo/git-service-driver.git
+[submodule "ldap-sync"]
+	path = ldap-sync
+	url = https://github.com/adedayo/ldap-sync.git
