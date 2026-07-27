@@ -47,12 +47,19 @@ for dir in "${ALL_DIRS[@]}"; do
   echo "📦 Processing $dir"
   pushd "$dir" > /dev/null
 
-  # 0. Auto-checkout, tidy, commit, and pull
+  # 0. Auto-checkout, commit, and pull
   BRANCH=$(git rev-parse --abbrev-ref HEAD)
   if [ "$BRANCH" != "main" ]; then
     echo "   - Checking out main branch"
     git checkout main >/dev/null 2>&1 || git checkout -b main
   fi
+
+  # Add temporary replace directives so go mod tidy can resolve local submodules without network calls
+  for mod in "${MODULES[@]}"; do
+    if grep -q "github.com/adedayo/$mod" go.mod; then
+      go mod edit -replace "github.com/adedayo/$mod=../$mod"
+    fi
+  done
 
   echo "   - Ensuring module is tidy"
   go mod tidy
@@ -79,9 +86,6 @@ for dir in "${ALL_DIRS[@]}"; do
       
       echo "   - Bumping $mod from $OLD_VERSION to $NEW_VERSION"
       go mod edit -require "github.com/adedayo/$mod@$NEW_VERSION"
-      
-      # Add replace directive so go mod tidy and GoReleaser resolve the local submodule directory without waiting for sum.golang.org indexing
-      go mod edit -replace "github.com/adedayo/$mod=../$mod"
     fi
   done
 
