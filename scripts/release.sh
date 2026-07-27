@@ -90,6 +90,12 @@ for dir in "${ALL_DIRS[@]}"; do
   echo "   - Running go mod tidy"
   go mod tidy
 
+  # Drop temporary replace directives so go.mod remains clean for release/installation
+  for mod in "${MODULES[@]}"; do
+    go mod edit -dropreplace "github.com/adedayo/$mod@$NEW_VERSION" 2>/dev/null || true
+    go mod edit -dropreplace "github.com/adedayo/$mod" 2>/dev/null || true
+  done
+
   # 3. Commit and push the local submodule changes to main
   if [[ -n $(git status -s) ]]; then
     echo "   - Committing changes in $dir main branch"
