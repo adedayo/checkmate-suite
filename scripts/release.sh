@@ -58,13 +58,10 @@ for dir in "${ALL_DIRS[@]}"; do
       echo "   - Bumping $mod from $OLD_VERSION to $NEW_VERSION"
       go mod edit -require "github.com/adedayo/$mod@$NEW_VERSION"
       
-      # Update replace directive if it exists
-      if grep -q "replace github.com/adedayo/$mod " go.mod; then
-         go mod edit -dropreplace "github.com/adedayo/$mod@$OLD_VERSION"
-         # Sometimes it's written without the version on the left side
-         go mod edit -dropreplace "github.com/adedayo/$mod" 2>/dev/null || true
-         go mod edit -replace "github.com/adedayo/$mod@$NEW_VERSION=../$mod"
-      fi
+      # Always add a replace directive so go mod tidy can resolve the local directory before the tag exists remotely
+      go mod edit -dropreplace "github.com/adedayo/$mod@$OLD_VERSION" 2>/dev/null || true
+      go mod edit -dropreplace "github.com/adedayo/$mod" 2>/dev/null || true
+      go mod edit -replace "github.com/adedayo/$mod@$NEW_VERSION=../$mod"
     fi
   done
 
