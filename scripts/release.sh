@@ -47,12 +47,15 @@ for dir in "${ALL_DIRS[@]}"; do
   echo "📦 Processing $dir"
   pushd "$dir" > /dev/null
 
-  # 0. Auto-checkout, commit, and pull
+  # 0. Auto-checkout, tidy, commit, and pull
   BRANCH=$(git rev-parse --abbrev-ref HEAD)
   if [ "$BRANCH" != "main" ]; then
     echo "   - Checking out main branch"
     git checkout main >/dev/null 2>&1 || git checkout -b main
   fi
+
+  echo "   - Ensuring module is tidy"
+  go mod tidy
 
   if [[ -n $(git status -s) ]]; then
     echo "   - Auto-committing uncommitted changes in $dir"
@@ -89,13 +92,14 @@ for dir in "${ALL_DIRS[@]}"; do
 
   # 3. Commit and push the local submodule changes to main
   if [[ -n $(git status -s) ]]; then
-    echo "   - Committing and pushing changes to $dir main branch"
+    echo "   - Committing changes in $dir main branch"
     git add .
     git commit -m "chore: release $NEW_VERSION"
-    git push origin main
   else
-    echo "   - No changes to commit in $dir"
+    echo "   - No new changes to commit in $dir"
   fi
+  echo "   - Pushing $dir to origin/main"
+  git push origin main
 
   popd > /dev/null
 done
@@ -107,8 +111,9 @@ echo "✅ Submodules updated. Preparing meta-repository..."
 git add .
 if [[ -n $(git status -s) ]]; then
   git commit -m "chore: release $NEW_VERSION"
-  git push origin main
 fi
+echo "   - Pushing meta-repository to origin/main"
+git push origin main
 
 # Finally, tag the suite repository to trigger the GitOps pipeline
 echo "🏷️ Tagging checkmate-suite with $NEW_VERSION..."
