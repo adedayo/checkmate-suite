@@ -68,6 +68,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
           HOMEBREW_GITHUB_TOKEN: ${{ secrets.HOMEBREW_GITHUB_TOKEN }}
+          GOPROXY: direct
+          GONOSUMDB: github.com/adedayo/*
         # We run goreleaser inside the checkmate submodule
         working-directory: ./checkmate
         run: |

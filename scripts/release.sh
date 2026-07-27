@@ -80,19 +80,16 @@ for dir in "${ALL_DIRS[@]}"; do
       echo "   - Bumping $mod from $OLD_VERSION to $NEW_VERSION"
       go mod edit -require "github.com/adedayo/$mod@$NEW_VERSION"
       
-      # Always add a replace directive so go mod tidy can resolve the local directory before the tag exists remotely
-      go mod edit -dropreplace "github.com/adedayo/$mod@$OLD_VERSION" 2>/dev/null || true
-      go mod edit -dropreplace "github.com/adedayo/$mod" 2>/dev/null || true
-      go mod edit -replace "github.com/adedayo/$mod@$NEW_VERSION=../$mod"
+      # Add replace directive so go mod tidy and GoReleaser resolve the local submodule directory without waiting for sum.golang.org indexing
+      go mod edit -replace "github.com/adedayo/$mod=../$mod"
     fi
   done
 
   echo "   - Running go mod tidy"
   go mod tidy
 
-  # Drop temporary replace directives so go.mod remains clean for release/installation
+  # Drop temporary replace directives before committing so published go.mod files remain clean for 'go install'
   for mod in "${MODULES[@]}"; do
-    go mod edit -dropreplace "github.com/adedayo/$mod@$NEW_VERSION" 2>/dev/null || true
     go mod edit -dropreplace "github.com/adedayo/$mod" 2>/dev/null || true
   done
 
