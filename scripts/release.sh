@@ -8,6 +8,23 @@ fi
 
 NEW_VERSION=$1
 GO_VERSION="1.26.1"
+
+echo "🧹 Auto-cleaning meta-repository..."
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [ "$BRANCH" != "main" ]; then
+  echo "   - Checking out main branch"
+  git checkout main >/dev/null 2>&1 || git checkout -b main
+fi
+
+if [[ -n $(git status -s) ]]; then
+  echo "   - Auto-committing uncommitted changes in meta-repository"
+  git add .
+  git commit -m "chore: auto-commit before release"
+fi
+
+echo "   - Pulling latest from origin/main"
+git pull origin main >/dev/null 2>&1
+
 # Discover all submodules dynamically (extensible for future apps)
 ALL_DIRS=()
 while read -r dir; do
@@ -30,19 +47,21 @@ for dir in "${ALL_DIRS[@]}"; do
   echo "📦 Processing $dir"
   pushd "$dir" > /dev/null
 
-  # 0. Safety Checks: Ensure on main and synced
+  # 0. Auto-checkout, commit, and pull
   BRANCH=$(git rev-parse --abbrev-ref HEAD)
   if [ "$BRANCH" != "main" ]; then
-    echo "❌ Error: $dir is on branch $BRANCH. Must be on main."
-    exit 1
+    echo "   - Checking out main branch"
+    git checkout main >/dev/null 2>&1 || git checkout -b main
   fi
-  
-  git fetch origin main >/dev/null 2>&1
-  BEHIND=$(git rev-list HEAD..origin/main --count)
-  if [ "$BEHIND" -gt 0 ]; then
-    echo "❌ Error: $dir is $BEHIND commits behind origin/main. Please pull first."
-    exit 1
+
+  if [[ -n $(git status -s) ]]; then
+    echo "   - Auto-committing uncommitted changes in $dir"
+    git add .
+    git commit -m "chore: auto-commit before release"
   fi
+
+  echo "   - Pulling latest from origin/main"
+  git pull origin main >/dev/null 2>&1
 
   # 1. Update Go version to the requested latest
   echo "   - Updating go.mod to go $GO_VERSION"
