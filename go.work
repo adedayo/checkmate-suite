@@ -1,0 +1,9 @@
+go 1.26.1
+
+use (
+	./checkmate
+	./checkmate-core
+	./checkmate-plugin
+	./git-service-driver
+	./ldap-sync
+)
