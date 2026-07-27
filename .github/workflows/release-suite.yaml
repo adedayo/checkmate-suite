@@ -30,17 +30,15 @@ jobs:
           # Discover all submodules dynamically
           mapfile -t ALL_DIRS < <(git config --file .gitmodules --get-regexp path | awk '{ print $2 }')
           
-          # We tag library dependencies (i.e. exclude main apps)
+          # We tag all submodules, including the main app so GoReleaser has a tag on HEAD
           for mod in "${ALL_DIRS[@]}"; do
-            if [[ "$mod" != "checkmate" && "$mod" != *"-app" ]]; then
-              echo "Tagging $mod with $TAG..."
-              cd "$mod"
-              # Tag the current HEAD of the submodule
-              git tag "$TAG" || true
-              # Push the tag to its origin remote (GitHub)
-              git push origin "$TAG" || true
-              cd ..
-            fi
+            echo "Tagging $mod with $TAG..."
+            cd "$mod"
+            # Tag the current HEAD of the submodule
+            git tag "$TAG" || true
+            # Push the tag to its origin remote (GitHub)
+            git push origin "$TAG" || true
+            cd ..
           done
 
       - name: Set up Go
