@@ -1,3 +1,7 @@
+github.com/adedayo/checkmate-core v1.0.11/go.mod h1:RZ+D5TJcptIu++in5LS/0365sskTcdfl8oxbKEJxOQE=
 github.com/adedayo/checkmate-plugin v1.0.2/go.mod h1:UpRbNJksAZ9nsfGaQPr3PqAjSbooMdOSAZ+TSlQTYIw=
+github.com/adedayo/checkmate-plugin v1.0.11/go.mod h1:7TSnHkY354lvXfFmWAdHjSLbb0if57Gfhl6kHEYkQ4w=
 github.com/adedayo/git-service-driver v1.0.2/go.mod h1:IQsE4eWYeBRgtEuXjU7I0xFM96Xn9F4f/tg5KSuRY6s=
+github.com/adedayo/git-service-driver v1.0.11/go.mod h1:4aS38bom0rNHUm0NXyDtVAzxW4a3IWOzt2DGavQEbkA=
 github.com/adedayo/ldap-sync v1.0.2/go.mod h1:mf0dqTzT4emwxHz4p9kV+JxmyuaJIxPf7psQL99ep7M=
+github.com/adedayo/ldap-sync v1.0.11/go.mod h1:mf0dqTzT4emwxHz4p9kV+JxmyuaJIxPf7psQL99ep7M=
