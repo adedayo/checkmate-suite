@@ -9,7 +9,10 @@ fi
 NEW_VERSION=$1
 GO_VERSION="1.26.1"
 # Discover all submodules dynamically (extensible for future apps)
-mapfile -t ALL_DIRS < <(git config --file .gitmodules --get-regexp path | awk '{ print $2 }')
+ALL_DIRS=()
+while read -r dir; do
+  ALL_DIRS+=("$dir")
+done < <(git config --file .gitmodules --get-regexp path | awk '{ print $2 }')
 
 # Library modules (submodules excluding the main app 'checkmate') to bump in go.mod
 MODULES=()
