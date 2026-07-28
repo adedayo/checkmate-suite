@@ -97,6 +97,9 @@ for dir in "${ALL_DIRS[@]}"; do
     go mod edit -dropreplace "github.com/adedayo/$mod" 2>/dev/null || true
   done
 
+  # Ensure go.sum contains entries for all required submodules
+  GOPROXY=direct GONOSUMDB="github.com/adedayo/*" go mod download >/dev/null 2>&1 || true
+
   # 3. Commit and push the local submodule changes to main
   if [[ -n $(git status -s) ]]; then
     echo "   - Committing changes in $dir main branch"
