@@ -25,17 +25,27 @@ fi
 echo "   - Pulling latest from origin/main"
 git pull origin main >/dev/null 2>&1
 
-# Discover all submodules dynamically (extensible for future apps)
-ALL_DIRS=()
+# Topological processing order (dependencies first, main app last)
+ORDERED_DIRS=(
+  "checkmate-core"
+  "checkmate-plugin"
+  "git-service-driver"
+  "ldap-sync"
+  "checkmate-badger-project-manager"
+  "checkmate"
+)
+
+ALL_DIRS=("${ORDERED_DIRS[@]}")
 while read -r dir; do
-  ALL_DIRS+=("$dir")
+  if [[ ! " ${ALL_DIRS[*]} " =~ " ${dir} " ]]; then
+    ALL_DIRS+=("$dir")
+  fi
 done < <(git config --file .gitmodules --get-regexp path | awk '{ print $2 }')
 
 # Library modules (submodules excluding the main app 'checkmate') to bump in go.mod
 MODULES=()
 for dir in "${ALL_DIRS[@]}"; do
   # We assume anything not named 'checkmate' or ending in '-app' is a library.
-  # For now, we just exclude 'checkmate'. If you add 'checkmate-desktop', you can exclude it here.
   if [[ "$dir" != "checkmate" && "$dir" != *"-app" ]]; then
     MODULES+=("$dir")
   fi
