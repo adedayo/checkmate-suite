@@ -100,7 +100,7 @@ for dir in "${ALL_DIRS[@]}"; do
   # Ensure go.sum contains entries for all required submodules
   GOPROXY=direct GONOSUMDB="github.com/adedayo/*" go mod download >/dev/null 2>&1 || true
 
-  # 3. Commit and push the local submodule changes to main
+  # 3. Commit and push the local submodule changes to main and tag
   if [[ -n $(git status -s) ]]; then
     echo "   - Committing changes in $dir main branch"
     git add .
@@ -108,8 +108,11 @@ for dir in "${ALL_DIRS[@]}"; do
   else
     echo "   - No new changes to commit in $dir"
   fi
-  echo "   - Pushing $dir to origin/main"
+  echo "   - Tagging $dir with $NEW_VERSION"
+  git tag "$NEW_VERSION" 2>/dev/null || true
+  echo "   - Pushing $dir to origin/main and $NEW_VERSION tag"
   git push origin main
+  git push origin "$NEW_VERSION" 2>/dev/null || true
 
   popd > /dev/null
 done
