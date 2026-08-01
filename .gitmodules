@@ -1,0 +1,3 @@
+[submodule "checkmate-app"]
+	path = checkmate-app
+	url = https://github.com/adedayo/checkmate-app.git
