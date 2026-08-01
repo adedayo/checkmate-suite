@@ -1,0 +1,208 @@
+name: Release CheckMate Desktop & Docker
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build-macos:
+    name: Build macOS Binary (Universal/DMG)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: true
+          cache-dependency-path: checkmate-app/go.sum
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Wails CLI
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Build macOS App
+        run: |
+          cd checkmate-app
+          wails build -platform darwin/universal -clean -ldflags "-X main.AppVersion=${{ github.ref_name }}"
+
+      - name: Create macOS DMG & ZIP
+        run: |
+          cd checkmate-app/build/bin
+          hdiutil create -volname "CheckMate" -srcfolder "checkmate-app.app" -ov -format UDZO "checkmate-app-macos-universal.dmg"
+          zip -r "checkmate-app-macos-universal.zip" "checkmate-app.app"
+
+      - name: Upload macOS Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-artifacts
+          path: |
+            checkmate-app/build/bin/checkmate-app-macos-universal.dmg
+            checkmate-app/build/bin/checkmate-app-macos-universal.zip
+
+  build-windows:
+    name: Build Windows Installer (EXE)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install NSIS & Wails CLI
+        run: |
+          choco install nsis -y
+          go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Build Windows App & NSIS Setup
+        run: |
+          cd checkmate-app
+          wails build -platform windows/amd64 -clean -nsis -ldflags "-X main.AppVersion=${{ github.ref_name }}"
+
+      - name: Compress Windows Zip
+        run: |
+          cd checkmate-app/build/bin
+          Compress-Archive -Path "checkmate-app.exe" -DestinationPath "checkmate-app-windows-amd64.zip"
+
+      - name: Upload Windows Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-artifacts
+          path: |
+            checkmate-app/build/bin/*installer*.exe
+            checkmate-app/build/bin/checkmate-app-windows-amd64.zip
+
+  build-linux:
+    name: Build Linux Packages (AppImage/Deb)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Linux Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev build-essential pkg-config
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Wails CLI
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Build Linux Binary
+        run: |
+          cd checkmate-app
+          wails build -platform linux/amd64 -clean -ldflags "-X main.AppVersion=${{ github.ref_name }}"
+
+      - name: Package Linux Assets
+        run: |
+          cd checkmate-app/build/bin
+          tar -czvf checkmate-app-linux-amd64.tar.gz checkmate-app
+
+      - name: Upload Linux Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-artifacts
+          path: checkmate-app/build/bin/checkmate-app-linux-amd64.tar.gz
+
+  build-docker:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./checkmate-app
+          file: ./checkmate-app/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ghcr.io/adedayo/checkmate-app:latest
+            ghcr.io/adedayo/checkmate-app:${{ github.ref_name }}
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: [build-macos, build-windows, build-linux, build-docker]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Download macOS Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-artifacts
+          path: release-assets/
+
+      - name: Download Windows Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-artifacts
+          path: release-assets/
+
+      - name: Download Linux Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-artifacts
+          path: release-assets/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-assets/*
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+
+      - name: Update Homebrew Cask
+        uses: mislav/bump-homebrew-formula-action@v3
+        with:
+          formula-name: checkmate-app
+          formula-path: Casks/checkmate-app.rb
+          homebrew-tap: adedayo/homebrew-tap
+          download-url: https://github.com/adedayo/checkmate-app/releases/download/${{ github.ref_name }}/checkmate-app-macos-universal.dmg
+          commit-message: "Update checkmate-app cask to ${{ github.ref_name }}"
+        env:
+          COMMITTER_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}

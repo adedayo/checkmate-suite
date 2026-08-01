@@ -1,0 +1,7 @@
+build/bin
+node_modules
+frontend/dist
+checkmate-app
+*.db
+debug_wails.js
+package.json.md5

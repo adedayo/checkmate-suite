@@ -1,0 +1,76 @@
+<div class="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
+
+  <!-- Top Navigation Header -->
+  <header class="border-b border-slate-200 bg-white/90 dark:border-slate-800 dark:bg-slate-900/90 backdrop-blur sticky top-0 z-50 shadow-sm dark:shadow-none">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 flex items-center justify-center shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+            <defs>
+              <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#3b82f6"/>
+                <stop offset="100%" stop-color="#2563eb"/>
+              </linearGradient>
+              <linearGradient id="checkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#10B981"/>
+                <stop offset="100%" stop-color="#059669"/>
+              </linearGradient>
+            </defs>
+            <path d="M256 48 L404 104 V232 C404 348 334 428 256 460 C178 428 108 348 108 232 V104 L256 48 Z" fill="none" stroke="url(#shieldGrad)" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M176 252 L236 312 L348 192" fill="none" stroke="url(#checkGrad)" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-xl font-extrabold tracking-tight text-slate-900 dark:bg-gradient-to-r dark:from-white dark:via-slate-200 dark:to-slate-400 dark:bg-clip-text dark:text-transparent">CHECKMATE</h1>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-700 dark:bg-cyan-950 dark:border-cyan-800 dark:text-cyan-400 font-mono font-medium">{{ version() }}</span>
+          </div>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Local SAST & Secret Scanning Engine</p>
+        </div>
+      </div>
+
+      <!-- Engine Status & Controls -->
+      <div class="flex items-center space-x-3">
+        
+        <!-- Theme Switcher Button -->
+        <button (click)="toggleTheme()" 
+          class="p-2 rounded-lg bg-slate-100 border border-slate-300 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-amber-300 dark:hover:bg-slate-700 transition"
+          title="Toggle Theme">
+          @if (theme() === 'dark') {
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          } @else {
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+          }
+        </button>
+
+        <!-- Live Pulse -->
+        <div class="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-300 dark:bg-slate-800/80 dark:border-slate-700/60 text-xs">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span class="text-slate-700 dark:text-slate-300 font-mono text-[11px]">CHECKMATE ENGINE ONLINE</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-200 dark:border-slate-800/80">
+      <nav class="flex space-x-6">
+        <a routerLink="/dashboard" routerLinkActive="border-cyan-600 dark:border-cyan-500 text-cyan-700 dark:text-cyan-400 font-semibold" [routerLinkActiveOptions]="{exact: true}" class="py-3 px-1 border-b-2 border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 text-xs uppercase tracking-wider transition cursor-pointer">
+          Overview
+        </a>
+        <a routerLink="/projects" routerLinkActive="border-cyan-600 dark:border-cyan-500 text-cyan-700 dark:text-cyan-400 font-semibold" class="py-3 px-1 border-b-2 border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 text-xs uppercase tracking-wider transition cursor-pointer flex items-center space-x-1.5">
+          <span>Projects</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+    <router-outlet></router-outlet>
+  </main>
+</div>
